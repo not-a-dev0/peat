@@ -3,7 +3,6 @@
 
 module Worker
   class Matching
-
     class DryrunError < StandardError
       attr :engine
 
@@ -12,22 +11,22 @@ module Worker
       end
     end
 
-    def initialize(options={})
+    def initialize(options = {})
       @options = options
-      reload 'all'
+      reload "all"
     end
 
     def process(payload, metadata, delivery_info)
       payload.symbolize_keys!
 
       case payload[:action]
-      when 'submit'
+      when "submit"
         submit build_order(payload[:order])
-      when 'cancel'
+      when "cancel"
         cancel build_order(payload[:order])
-      when 'reload'
+      when "reload"
         reload payload[:market]
-      when 'new'
+      when "new"
         initialize_engine Market.find(payload[:market])
       else
         Rails.logger.fatal { "Unknown action: #{payload[:action]}" }
@@ -43,7 +42,7 @@ module Worker
     end
 
     def reload(market)
-      if market == 'all'
+      if market == "all"
         # NOTE: Run matching engine for disabled markets.
         Market.find_each(&method(:initialize_engine))
         Rails.logger.info { "All engines reloaded." }
@@ -53,7 +52,7 @@ module Worker
       end
     rescue DryrunError => e
       # stop started engines
-      engines.each {|id, engine| engine.shift_gears(:dryrun) unless engine == e.engine }
+      engines.each { |id, engine| engine.shift_gears(:dryrun) unless engine == e.engine }
 
       Rails.logger.fatal { "#{market} engine failed to start. Matched during dryrun:" }
       e.engine.queue.each do |trade|
@@ -67,8 +66,8 @@ module Worker
 
     def initialize_engine(market)
       create_engine market
-      load_orders   market
-      start_engine  market
+      load_orders market
+      start_engine market
     end
 
     def create_engine(market)
@@ -76,7 +75,7 @@ module Worker
     end
 
     def load_orders(market)
-      ::Order.active.with_market(market.id).order('id asc').each do |order|
+      ::Order.active.with_market(market.id).order("id asc").each do |order|
         submit build_order(order.to_matching_attributes)
       end
     end
@@ -87,18 +86,18 @@ module Worker
         if engine.queue.empty?
           engine.shift_gears :run
         else
-          accept = ENV['ACCEPT_MINUTES'] ? ENV['ACCEPT_MINUTES'].to_i : 30
+          accept = ENV["ACCEPT_MINUTES"] ? ENV["ACCEPT_MINUTES"].to_i : 30
           order_ids = engine.queue
-            .map {|args| [args[1][:ask_id], args[1][:bid_id]] }
+            .map { |args| [args[1][:ask_id], args[1][:bid_id]] }
             .flatten.uniq
 
-          orders = Order.where('created_at < ?', accept.minutes.ago).where(id: order_ids)
+          orders = Order.where("created_at < ?", accept.minutes.ago).where(id: order_ids)
           if orders.exists?
             # there're very old orders matched, need human intervention
             raise DryrunError, engine
           else
             # only buffered orders matched, just publish trades and continue
-            engine.queue.each {|args| AMQPQueue.enqueue(*args) }
+            engine.queue.each { |args| AMQPQueue.enqueue(*args) }
             engine.shift_gears :run
           end
         end
@@ -114,19 +113,19 @@ module Worker
     # dump limit orderbook
     def on_usr1
       engines.each do |id, eng|
-        dump_file = File.join('/', 'tmp', "limit_orderbook_#{id}")
+        dump_file = File.join("/", "tmp", "limit_orderbook_#{id}")
         limit_orders = eng.limit_orders
 
-        File.open(dump_file, 'w') do |f|
+        File.open(dump_file, "w") do |f|
           f.puts "ASK"
           limit_orders[:ask].keys.reverse.each do |k|
-            f.puts k.to_s('F')
-            limit_orders[:ask][k].each {|o| f.puts "\t#{o.label}" }
+            f.puts k.to_s("F")
+            limit_orders[:ask][k].each { |o| f.puts "\t#{o.label}" }
           end
-          f.puts "-"*40
+          f.puts "-" * 40
           limit_orders[:bid].keys.reverse.each do |k|
-            f.puts k.to_s('F')
-            limit_orders[:bid][k].each {|o| f.puts "\t#{o.label}" }
+            f.puts k.to_s("F")
+            limit_orders[:bid][k].each { |o| f.puts "\t#{o.label}" }
           end
           f.puts "BID"
         end
@@ -138,20 +137,19 @@ module Worker
     # dump market orderbook
     def on_usr2
       engines.each do |id, eng|
-        dump_file = File.join('/', 'tmp', "market_orderbook_#{id}")
+        dump_file = File.join("/", "tmp", "market_orderbook_#{id}")
         market_orders = eng.market_orders
 
-        File.open(dump_file, 'w') do |f|
+        File.open(dump_file, "w") do |f|
           f.puts "ASK"
-          market_orders[:ask].each {|o| f.puts "\t#{o.label}" }
-          f.puts "-"*40
-          market_orders[:bid].each {|o| f.puts "\t#{o.label}" }
+          market_orders[:ask].each { |o| f.puts "\t#{o.label}" }
+          f.puts "-" * 40
+          market_orders[:bid].each { |o| f.puts "\t#{o.label}" }
           f.puts "BID"
         end
 
         puts "#{id} market orderbook dumped to #{dump_file}."
       end
     end
-
   end
 end
