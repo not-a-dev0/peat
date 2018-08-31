@@ -1,6 +1,8 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
+require "peatio/upstream/binance"
+
 module Worker
   class Matching
     class DryrunError < StandardError
