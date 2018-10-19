@@ -91,3 +91,8 @@ group :test do
   gem 'em-spec', '~> 0.2.7', require: false
   gem 'em-websocket-client', '~> 0.1.2', require: false
 end
+
+# Load gems from Gemfile.plugin.
+Dir.glob File.expand_path('../Gemfile.plugin', __FILE__) do |file|
+  eval_gemfile file
+end
