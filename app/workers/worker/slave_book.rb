@@ -42,6 +42,9 @@ module Worker
       @managers.keys.each do |market_id|
         Rails.cache.write "peatio:#{market_id}:depth:asks", get_depth(market_id, :ask)
         Rails.cache.write "peatio:#{market_id}:depth:bids", get_depth(market_id, :bid)
+        # Temporary information for legacy getting orders
+        Rails.cache.write "peatio:#{market_id}:depth_legacy:asks", get_depth_legacy(market_id, :ask)
+        Rails.cache.write "peatio:#{market_id}:depth_legacy:bids", get_depth_legacy(market_id, :bid)
         Rails.logger.debug { "SlaveBook (#{market_id}) updated" }
       end
     rescue
@@ -66,7 +69,7 @@ module Worker
       @managers[market] = ::Matching::OrderBookManager.new(market, broadcast: false)
     end
 
-    def get_depth(market, side)
+    def get_depth_legacy(market, side)
       depth = Hash.new { |h, k| h[k] = 0 }
       @managers[Market === market ? market.id : market].send("#{side}_orders").limit_orders.each do |price, orders|
         depth[price] += orders.map(&:volume).sum
@@ -77,5 +80,12 @@ module Worker
       depth
     end
 
+    def get_depth(market_id, side)
+      Order.where(market_id: market_id, state: 'wait', type: "Order#{side}", ord_type: 'limit')
+           .group(:price)
+           .sum(:volume)
+           .to_a
+           .tap { |o| o.reverse! if side == :bid }
+    end
   end
 end
