@@ -18,7 +18,7 @@ class Order < ActiveRecord::Base
   validates :origin_volume, numericality: { greater_than: 0.to_d }
   validates :price, numericality: { greater_than: 0 }, if: ->(order) { order.ord_type == 'limit' }
   validate  :market_order_validations, if: ->(order) { order.ord_type == 'market' }
-  
+
   WAIT   = 'wait'
   DONE   = 'done'
   CANCEL = 'cancel'
@@ -27,6 +27,8 @@ class Order < ActiveRecord::Base
   scope :active, -> { with_state(:wait) }
 
   before_validation(on: :create) { self.fee = config.public_send("#{kind}_fee") }
+
+  belongs_to :fee_currency, class_name: 'Currency', required: false
 
   after_commit on: :create do
     next unless ord_type == 'limit'
@@ -120,6 +122,35 @@ class Order < ActiveRecord::Base
     end
   end
 
+  def fee_currency_account
+    Account.where(member: member, currency: fee_currency).first
+  end
+
+  def utility_fee?
+    fee_currency_account.present?
+  end
+
+  def utility_fee_possible?
+    utility_fee? && fee_currency_account.balance.positive?
+  end
+
+  def calculate_fee(value)
+    value * fee
+  end
+
+  def charge_utility_fee!(value)
+    return calculate_fee(value) unless utility_fee_possible?
+
+    # calculate the fee based on utility currency price
+    utility_fee_amount = calculate_fee(value) * utility_currency_price
+
+    # charge the fee
+    fee_currency_account.sub_funds(utility_fee_amount)
+
+    # return the fee value in the base currency
+    0
+  end
+
   private
 
   def is_limit_order?
@@ -153,31 +184,36 @@ class Order < ActiveRecord::Base
     required_funds
   end
 
+  def utility_currency_price
+    # TODO: Return the utility currency price of the current market.
+    ENV.fetch('UTILITY_PRICE_FACTOR', 0.5).to_d
+  end
 end
 
 # == Schema Information
-# Schema version: 20180813105100
+# Schema version: 20181204145058
 #
 # Table name: orders
 #
-#  id             :integer          not null, primary key
-#  bid            :string(10)       not null
-#  ask            :string(10)       not null
-#  market_id      :string(20)       not null
-#  price          :decimal(32, 16)
-#  volume         :decimal(32, 16)  not null
-#  origin_volume  :decimal(32, 16)  not null
-#  fee            :decimal(32, 16)  default(0.0), not null
-#  state          :integer          not null
-#  type           :string(8)        not null
-#  member_id      :integer          not null
-#  ord_type       :string           not null
-#  locked         :decimal(32, 16)  default(0.0), not null
-#  origin_locked  :decimal(32, 16)  default(0.0), not null
-#  funds_received :decimal(32, 16)  default(0.0)
-#  trades_count   :integer          default(0), not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
+#  id              :integer          not null, primary key
+#  bid             :string(10)       not null
+#  ask             :string(10)       not null
+#  market_id       :string(20)       not null
+#  price           :decimal(32, 16)
+#  volume          :decimal(32, 16)  not null
+#  origin_volume   :decimal(32, 16)  not null
+#  fee             :decimal(32, 16)  default(0.0), not null
+#  state           :integer          not null
+#  type            :string(8)        not null
+#  member_id       :integer          not null
+#  ord_type        :string           not null
+#  locked          :decimal(32, 16)  default(0.0), not null
+#  origin_locked   :decimal(32, 16)  default(0.0), not null
+#  funds_received  :decimal(32, 16)  default(0.0)
+#  trades_count    :integer          default(0), not null
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  fee_currency_id :integer
 #
 # Indexes
 #

@@ -169,4 +169,94 @@ describe Matching::Executor do
       end.not_to change(Trade, :count)
     end
   end
+
+  context 'dynamic fees' do
+    context 'when paying fee with utility currency' do
+      let(:ask) { create(:order_ask, price: price, volume: volume, member: alice, fee_currency_id: 'trst') }
+      let(:bid) { create(:order_bid, price: price, volume: volume, member: bob) }
+
+      it 'detects if it is possible' do
+        expect(ask.utility_fee?).to be true
+        expect(bid.utility_fee?).to be false
+
+        ask.fee_currency_account.update(balance: 0)
+        expect(ask.utility_fee_possible?).to be false
+        expect(bid.utility_fee_possible?).to be false
+
+        ask.fee_currency_account.update(balance: 0.5)
+        expect(ask.utility_fee_possible?).to be true
+        expect(bid.utility_fee_possible?).to be false
+      end
+    end
+
+    context 'when trading with enough coins on ask utility account', dynamic_fees: true do
+      let(:ask) do
+        create(:order_ask, price: price, volume: volume, member: alice, fee_currency_id: 'trst').tap do |ask_order|
+          # load some utility tokens
+          ask_order.fee_currency_account.update(balance: 1)
+        end
+      end
+      let(:bid) { create(:order_bid, price: price, volume: volume, member: bob) }
+
+      subject do
+        Matching::Executor.new(
+          market_id: market.id,
+          ask_id: ask.id,
+          bid_id: bid.id,
+          strike_price: price.to_s('F'),
+          volume: volume.to_s('F'),
+          funds: (price * volume).to_s('F')
+        )
+      end
+
+      it 'pays the ask trading fee with utility currency' do
+        expect {
+          subject.execute!
+
+          ask.reload
+          bid.reload
+        }.to change { ask.expect_account.balance }.by(volume * price)
+         .and change { bid.expect_account.balance }.by(ask.volume * (1.0 - ask.fee))
+         .and change { ask.fee_currency_account.balance }.by(-0.5 * volume * price * bid.fee)
+      end
+    end
+
+    context 'when trading with enough coins on both utility accounts', dynamic_fees: true do
+      let(:ask) do
+        create(:order_ask, price: price, volume: volume, member: alice, fee_currency_id: 'trst').tap do |ask_order|
+          # load some utility tokens
+          ask_order.fee_currency_account.update(balance: 1)
+        end
+      end
+      let(:bid) do
+        create(:order_bid, price: price, volume: volume, member: bob, fee_currency_id: 'trst').tap do |bid_order|
+          # load some utility tokens
+          bid_order.fee_currency_account.update(balance: 1)
+        end
+      end
+
+      subject do
+        Matching::Executor.new(
+          market_id: market.id,
+          ask_id: ask.id,
+          bid_id: bid.id,
+          strike_price: price.to_s('F'),
+          volume: volume.to_s('F'),
+          funds: (price * volume).to_s('F')
+        )
+      end
+
+      it 'pays both sides trading fee with utility currency' do
+        expect {
+          subject.execute!
+
+          ask.reload
+          bid.reload
+        }.to change { ask.expect_account.balance }.by(volume * price)
+         .and change { bid.expect_account.balance }.by(volume)
+         .and change { ask.fee_currency_account.balance }.by(-0.5 * volume * price * bid.fee)
+         .and change { bid.fee_currency_account.balance }.by(-0.5 * volume * ask.fee)
+      end
+    end
+  end
 end

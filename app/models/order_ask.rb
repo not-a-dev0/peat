@@ -49,28 +49,29 @@ class OrderAsk < Order
 end
 
 # == Schema Information
-# Schema version: 20180813105100
+# Schema version: 20181204145058
 #
 # Table name: orders
 #
-#  id             :integer          not null, primary key
-#  bid            :string(10)       not null
-#  ask            :string(10)       not null
-#  market_id      :string(20)       not null
-#  price          :decimal(32, 16)
-#  volume         :decimal(32, 16)  not null
-#  origin_volume  :decimal(32, 16)  not null
-#  fee            :decimal(32, 16)  default(0.0), not null
-#  state          :integer          not null
-#  type           :string(8)        not null
-#  member_id      :integer          not null
-#  ord_type       :string           not null
-#  locked         :decimal(32, 16)  default(0.0), not null
-#  origin_locked  :decimal(32, 16)  default(0.0), not null
-#  funds_received :decimal(32, 16)  default(0.0)
-#  trades_count   :integer          default(0), not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
+#  id              :integer          not null, primary key
+#  bid             :string(10)       not null
+#  ask             :string(10)       not null
+#  market_id       :string(20)       not null
+#  price           :decimal(32, 16)
+#  volume          :decimal(32, 16)  not null
+#  origin_volume   :decimal(32, 16)  not null
+#  fee             :decimal(32, 16)  default(0.0), not null
+#  state           :integer          not null
+#  type            :string(8)        not null
+#  member_id       :integer          not null
+#  ord_type        :string           not null
+#  locked          :decimal(32, 16)  default(0.0), not null
+#  origin_locked   :decimal(32, 16)  default(0.0), not null
+#  funds_received  :decimal(32, 16)  default(0.0)
+#  trades_count    :integer          default(0), not null
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  fee_currency_id :integer
 #
 # Indexes
 #
