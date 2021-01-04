@@ -4,7 +4,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo_slug| "https://github.com/#{repo_slug}" }
 
-gem 'rails', '~> 4.2.10'
+gem 'rails', '~> 4.2.11'
 gem 'rails-i18n', '~> 4.0.9'
 gem 'puma', '~> 3.11.4'
 gem 'mysql2', '~> 0.4.10'
@@ -34,7 +34,7 @@ gem 'grape-swagger-entity', '~> 0.2.5'
 gem 'grape_strip', '~> 1.0.0'
 gem 'grape_logging', '~> 1.8.0'
 gem 'rack-attack', '~> 5.4.1'
-gem 'easy_table', '~> 0.0.9'
+gem 'easy_table', '~> 0.0.10'
 gem 'faraday', '~> 0.14.0'
 gem 'jwt', '~> 2.1.0'
 gem 'email_validator', '~> 1.6.0'
@@ -58,7 +58,7 @@ group :development, :test do
   gem 'bump',         '~> 0.7'
   gem 'faker',        '~> 1.8'
   gem 'pry-byebug',   '~> 3.6'
-  gem 'quiet_assets', '~> 1.1'
+  gem 'quiet_assets', '~> 1.1', '>= 1.1.0'
   gem 'bullet',       '~> 5.7'
 end
 
@@ -68,12 +68,12 @@ group :development do
 end
 
 group :test do
-  gem 'rspec-rails',         '~> 3.7'
+  gem 'rspec-rails', '~> 3.8', '>= 3.8.1'
   gem 'rspec-retry',         '~> 0.5'
   gem 'webmock',             '~> 3.3'
   gem 'database_cleaner',    '~> 1.6'
   gem 'mocha',               '~> 1.4', require: false
-  gem 'factory_bot_rails',   '~> 4.8'
+  gem 'factory_bot_rails', '~> 4.11', '>= 4.11.1'
   gem 'timecop',             '~> 0.9'
   gem 'rubocop-rspec',       '~> 1.30', require: false
 end
