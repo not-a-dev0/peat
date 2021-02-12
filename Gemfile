@@ -4,7 +4,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo_slug| "https://github.com/#{repo_slug}" }
 
-gem 'rails', '~> 4.2.10'
+gem 'rails', '~> 6.0.3', '>= 6.0.3.5'
 gem 'rails-i18n', '~> 4.0.9'
 gem 'puma', '~> 3.11.4'
 gem 'mysql2', '~> 0.4.10'
