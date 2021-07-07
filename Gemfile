@@ -70,7 +70,7 @@ end
 group :test do
   gem 'rspec-rails',         '~> 3.7'
   gem 'rspec-retry',         '~> 0.5'
-  gem 'webmock',             '~> 3.3'
+  gem 'webmock', '~> 3.4', '>= 3.4.2'
   gem 'database_cleaner',    '~> 1.6'
   gem 'mocha',               '~> 1.4', require: false
   gem 'factory_bot_rails',   '~> 4.8'
