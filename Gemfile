@@ -4,7 +4,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo_slug| "https://github.com/#{repo_slug}" }
 
-gem 'rails', '~> 4.2.10'
+gem 'rails', '~> 5.2.8', '>= 5.2.8.1'
 gem 'rails-i18n', '~> 4.0.9'
 gem 'puma', '~> 3.11.4'
 gem 'mysql2', '~> 0.4.10'
@@ -63,7 +63,7 @@ group :development, :test do
 end
 
 group :development do
-  gem 'annotate',   '~> 2.7'
+  gem 'annotate', '~> 2.7', '>= 2.7.4'
   gem 'ruby-prof',  '~> 0.17.0', require: false
 end
 
