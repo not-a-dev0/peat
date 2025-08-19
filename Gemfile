@@ -4,7 +4,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo_slug| "https://github.com/#{repo_slug}" }
 
-gem 'rails', '~> 4.2.10'
+gem 'rails', '~> 7.1.5', '>= 7.1.5.2'
 gem 'rails-i18n', '~> 4.0.9'
 gem 'puma', '~> 3.11.4'
 gem 'mysql2', '~> 0.4.10'
@@ -16,7 +16,7 @@ gem 'aasm', '~> 5.0.0'
 gem 'bunny', '~> 2.11.0'
 gem 'cancancan', '~> 2.2.0'
 gem 'enumerize', '~> 2.2.2'
-gem 'kaminari', '~> 1.1.1'
+gem 'kaminari', '~> 1.2.0'
 gem 'gon', '~> 5.2.3'
 gem 'sassc-rails', '~> 1.3.0'
 gem 'coffee-rails', '~> 4.2.2'
@@ -47,7 +47,7 @@ gem 'sentry-raven', '~> 2.7.3', require: false
 gem 'memoist', '~> 0.16.0'
 gem 'method-not-implemented', '~> 1.0.1'
 gem 'passgen', '~> 1.0.2'
-gem 'validates_lengths_from_database', '~> 0.7.0'
+gem 'validates_lengths_from_database', '~> 0.8.0'
 gem 'jwt-multisig', '~> 1.0.0'
 gem 'cash-addr', '~> 0.1.1', require: 'cash_addr'
 gem 'digest-sha3', '~> 1.1.0'
@@ -63,7 +63,7 @@ group :development, :test do
 end
 
 group :development do
-  gem 'annotate',   '~> 2.7'
+  gem 'annotate', '~> 3.2', '>= 3.2.0'
   gem 'ruby-prof',  '~> 0.17.0', require: false
 end
 
